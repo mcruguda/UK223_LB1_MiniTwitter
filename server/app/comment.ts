@@ -1,4 +1,8 @@
-class TwitterComment {
+import { Post } from './post'
+import { Like } from './like'
+import { User } from './User'
+
+export class TwitterComment {
   content: string
   commentedPost: Post
   postDate: Date

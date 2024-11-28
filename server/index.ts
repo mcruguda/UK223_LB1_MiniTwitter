@@ -28,7 +28,7 @@ class Backend {
   constructor() {
     this._app = express()
     this._database = new Database()
-    this._api = new API(this._app)
+    this._api = new API(this._app, this._database)
     this._env = process.env.NODE_ENV || 'development'
 
     this.setupStaticFiles()

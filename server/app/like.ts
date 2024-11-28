@@ -1,4 +1,8 @@
-class Like {
+import { User } from './User'
+import { Post } from './post'
+import { TwitterComment } from './comment'
+
+export class Like {
   likedPost?: Post
   likedComment?: TwitterComment
   user: User

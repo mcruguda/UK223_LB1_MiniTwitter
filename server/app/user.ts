@@ -1,4 +1,8 @@
-class User {
+import { Post } from './post'
+import { TwitterComment } from './comment'
+import { Like } from './like'
+
+export class User {
   userId: number
   username: string
   password: string
