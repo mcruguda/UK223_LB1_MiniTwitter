@@ -3,16 +3,25 @@ import { TwitterComment } from './comment'
 import { Like } from './like'
 
 export class User {
-  userId: number
+  private userId: number
   username: string
-  password: string
+  private password: string
   posts?: Post[]
   comments?: TwitterComment[]
-  likes?: Like[]
+  private likes?: Like[]
 
   constructor(userId: number, username: string, password: string) {
     this.userId = userId
     this.username = username
     this.password = password
+  }
+
+  public get getUserId(): number {
+    return this.userId
+  }
+
+  public postTweet(tweetContent: string, date: Date, userId: number) {
+    const newTweet = new Post(tweetContent, date, userId)
+    this.posts?.push(newTweet)
   }
 }

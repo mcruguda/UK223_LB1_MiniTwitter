@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken'
 import * as dotenv from 'dotenv'
 dotenv.config()
-const secretKey = process.env.SECRETKEY
+const secretKey = process.env.SECRET_KEY
 
 export class JwtMiddleware {
   constructor() {}
@@ -19,7 +19,7 @@ export class JwtMiddleware {
         return res.status(403).json({ message: 'Failed to authenticate token' })
       }
 
-      req.username = decoded.data
+      req.body.id = decoded.data.userId
       next()
     })
   }

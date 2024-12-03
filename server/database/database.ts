@@ -5,6 +5,7 @@ import {
   COMMENT_TABLE,
   ROLE_TABLE,
   LIKE_TABLE,
+  CREATE_ROLES,
 } from './schema'
 
 export class Database {
@@ -32,6 +33,7 @@ export class Database {
     await this.executeSQL(TWEET_TABLE)
     await this.executeSQL(COMMENT_TABLE)
     await this.executeSQL(LIKE_TABLE)
+    await this.executeSQL(CREATE_ROLES)
   }
 
   public executeSQL = async (query: string) => {

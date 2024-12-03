@@ -45,15 +45,17 @@ CREATE TABLE IF NOT EXISTS \`comments\` (
 
 const LIKE_TABLE = `
 CREATE TABLE IF NOT EXISTS \`likes\` (
-    \`name\` VARCHAR(255) NOT NULL,
     \`user_id\` INT NOT NULL,
     \`post_id\` INT NOT NULL,
-    \`comment_id\` INT,
-    PRIMARY KEY (\`post_id\`, \`comment_id\`, \`user_id\`),
+    \`isPositive\` BOOLEAN,
+    PRIMARY KEY (\`post_id\`, \`user_id\`),
     FOREIGN KEY (\`post_id\`) REFERENCES \`posts\`(\`id\`),
-    FOREIGN KEY (\`comment_id\`) REFERENCES \`comments\`(\`id\`),
     FOREIGN KEY (\`user_id\`) REFERENCES \`users\`(\`id\`)
 );
+`
+
+const CREATE_ROLES = `
+INSERT INTO \`roles\`(\`name\`) VALUES ('User'), ('Administrator'), ('Moderator')
 `
 
 export {
@@ -62,4 +64,5 @@ export {
   ROLE_TABLE,
   COMMENT_TABLE,
   LIKE_TABLE,
+  CREATE_ROLES,
 }
