@@ -16,6 +16,8 @@ I could not completely finish the Project, alot of the API endpoints are made bu
 Furthermore as specified on top, the Roles have to be created manually at the moment.
 Admin/Moderator functionality are not yet implemented!
 
+At the moment the comments are shown with their user_id instead of username.
+
 ### Bugs
 
 There's a few bugs like for example after creating the first tweet or comment on a tweet the backend crashes, it will restart by itself and should work from then on out.
