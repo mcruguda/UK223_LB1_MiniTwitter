@@ -156,6 +156,10 @@ export class API {
     this.db = db
     this.loadObjects()
   }
+  // Methods
+  private sayHello(req: Request, res: Response) {
+    res.send('Hello There!')
+  }
 
   private register = async (req: Request, res: Response): Promise<void> => {
     const validationRes = validationResult(req)

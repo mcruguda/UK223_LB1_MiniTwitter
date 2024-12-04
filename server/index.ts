@@ -1,4 +1,4 @@
-import express, { Express, Request, Response } from 'express'
+import express, { Express, Request, Response, Router } from 'express'
 import { API } from './api'
 import http from 'http'
 import { resolve, dirname } from 'path'
@@ -75,3 +75,4 @@ class Backend {
 
 const backend = new Backend()
 export const viteNodeApp = backend.app
+export default Router
