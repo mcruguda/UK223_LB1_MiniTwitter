@@ -7,6 +7,7 @@ import * as dotenv from 'dotenv'
 import { User } from '../app/user'
 import { Post } from '../app/post'
 import { JwtMiddleware } from './jwtMiddleware'
+import * as path from 'path'
 dotenv.config()
 
 export class API {
@@ -22,6 +23,9 @@ export class API {
     this.twitterUsers = []
     this.app = app
     this.app.get('/hello', this.sayHello)
+    this.app.get('/register', this.registerRoute)
+    this.app.get('/login', this.login)
+    this.app.get('/homepage', this.homepageRoute)
     this.app.post(
       '/api/register',
       body('username')
@@ -392,5 +396,17 @@ export class API {
     const usernameAvailable = await this.db.executeSQL(checkUsernameQuery)
     if (usernameAvailable.length === 0) return true
     return false
+  }
+
+  private loginRoute = async (req: Request, res: Response): Promise<any> => {
+    res.sendFile(path.join(__dirname, '..', 'index.html'))
+  }
+
+  private registerRoute = async (req: Request, res: Response): Promise<any> => {
+    res.sendFile(path.join(__dirname, '..', 'register.html'))
+  }
+
+  private homepageRoute = async (req: Request, res: Response): Promise<any> => {
+    res.sendFile(path.join(__dirname, '..', 'homepage.html'))
   }
 }

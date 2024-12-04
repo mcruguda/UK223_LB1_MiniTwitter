@@ -5,8 +5,95 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="./output.css" rel="stylesheet" />
-    <script src="client.js"></script>
     <title>Typescript Starter</title>
   </head>
-  <body></body>
+  <body>
+    <div class="flex flex-col justify-center font-[sans-serif] sm:h-screen p-4">
+      <div
+        class="max-w-md w-full mx-auto border border-gray-300 rounded-2xl p-8"
+      >
+        <div class="text-center mb-12">
+          <a href="javascript:void(0)"
+            ><img
+              src="https://readymadeui.com/readymadeui.svg"
+              alt="logo"
+              class="w-40 inline-block"
+            />
+          </a>
+        </div>
+
+        <form>
+          <div class="space-y-6">
+            <div>
+              <label class="text-gray-800 text-sm mb-2 block">Username</label>
+              <input
+                name="username"
+                type="text"
+                class="text-gray-800 bg-white border border-gray-300 w-full text-sm px-4 py-3 rounded-md outline-blue-500"
+                placeholder="Enter username"
+                id="register-username-value"
+              />
+            </div>
+            <div>
+              <label class="text-gray-800 text-sm mb-2 block">Password</label>
+              <input
+                name="password"
+                type="password"
+                class="text-gray-800 bg-white border border-gray-300 w-full text-sm px-4 py-3 rounded-md outline-blue-500"
+                placeholder="Enter password"
+                id="register-password-value"
+              />
+            </div>
+            <div>
+              <label class="text-gray-800 text-sm mb-2 block"
+                >Confirm Password</label
+              >
+              <input
+                name="cpassword"
+                type="password"
+                class="text-gray-800 bg-white border border-gray-300 w-full text-sm px-4 py-3 rounded-md outline-blue-500"
+                placeholder="Enter confirm password"
+              />
+            </div>
+
+            <div class="flex items-center">
+              <input
+                id="remember-me"
+                name="remember-me"
+                type="checkbox"
+                class="h-4 w-4 shrink-0 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <label for="remember-me" class="text-gray-800 ml-3 block text-sm">
+                I accept the
+                <a
+                  href="javascript:void(0);"
+                  class="text-blue-600 font-semibold hover:underline ml-1"
+                  >Terms and Conditions</a
+                >
+              </label>
+            </div>
+          </div>
+
+          <div class="!mt-12">
+            <button
+              type="button"
+              class="w-full py-3 px-4 text-sm tracking-wider font-semibold rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none"
+              id="register-btn"
+            >
+              Create an account
+            </button>
+          </div>
+          <p class="text-gray-800 text-sm mt-6 text-center">
+            Already have an account?
+            <a
+              href="./index.html"
+              class="text-blue-600 font-semibold hover:underline ml-1"
+              >Login here</a
+            >
+          </p>
+        </form>
+      </div>
+    </div>
+    <script src="register-script.js"></script>
+  </body>
 </html>

@@ -1,11 +1,35 @@
-if (location.host.includes('localhost')) {
-  // Load livereload script if we are on localhost
-  document.write(
-    '<script src="http://' +
-      (location.host || 'localhost').split(':')[0] +
-      ':35729/livereload.js?snipver=1"></' +
-      'script>'
-  )
-}
+const loginBtn = document.getElementById('login-btn')
+const registerRouteBtn = document.getElementById('register-route')
 
-console.log('This is a Test')
+loginBtn.addEventListener('click', async () => {
+  const loginUser = document.getElementById('username-value').value
+  const loginPassword = document.getElementById('password-value').value
+  const response = await fetch('/api/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      username: loginUser,
+      password: loginPassword,
+    }),
+  })
+
+  if (response.ok) {
+    const data = await response.json()
+    window.location.href = '/homepage'
+  } else if (response.status == 401) {
+    document.getElementById('error-msg').innerText =
+      'Benutzer oder Passwort falsch'
+  } else if (response.status == 404 || response.status == 500) {
+    document.getElementById('error-msg').innerText =
+      'Server nicht erreichbar, probieren sie später nochmal'
+  } else {
+    document.getElementById('error-msg').innerText =
+      'Ein Fehler ist aufgetretten'
+  }
+})
+
+registerRouteBtn.addEventListener('click', async () => {
+  window.location.href = '/register'
+})
