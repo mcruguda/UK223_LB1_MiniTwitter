@@ -11,6 +11,9 @@ export class User {
   private likes?: Like[]
 
   constructor(userId: number, username: string, password: string) {
+    this.comments = []
+    this.posts = []
+    this.likes = []
     this.userId = userId
     this.username = username
     this.password = password
@@ -20,8 +23,25 @@ export class User {
     return this.userId
   }
 
-  public postTweet(tweetContent: string, date: Date, userId: number) {
-    const newTweet = new Post(tweetContent, date, userId)
+  public postTweet(
+    id: number,
+    tweetContent: string,
+    date: Date,
+    userId: number
+  ) {
+    const newTweet = new Post(id, tweetContent, date, userId)
     this.posts?.push(newTweet)
+  }
+
+  public loadTweet(tweet: Post) {
+    this.posts?.push(tweet)
+  }
+
+  public loadComment(comment: TwitterComment) {
+    this.comments?.push(comment)
+  }
+
+  public loadLike(like: Like) {
+    this.likes?.push(like)
   }
 }

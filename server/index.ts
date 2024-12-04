@@ -57,11 +57,16 @@ class Backend {
       const __dirname = resolve(dirname(''))
       res.sendFile(__dirname + '/client/homepage.html')
     })
+
+    this._app.get('/tweets/:id', (req: Request, res: Response) => {
+      const __dirname = resolve(dirname(''))
+      res.sendFile(__dirname + '/client/tweet.html')
+    })
   }
 
   private startServer(): void {
     if (this._env === 'production') {
-      http.createServer(this.app).listen(3000, () => {
+      http.createServer(this.app).listen(process.env.PORT || 8080, () => {
         console.log('Server is listening!')
       })
     }

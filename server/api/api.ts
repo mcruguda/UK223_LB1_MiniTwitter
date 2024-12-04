@@ -5,9 +5,13 @@ import { query, body, validationResult, matchedData } from 'express-validator'
 import jwt from 'jsonwebtoken'
 import * as dotenv from 'dotenv'
 import { User } from '../app/user'
+import { Admin } from '../app/admin'
+import { Moderator } from '../app/moderator'
 import { Post } from '../app/post'
 import { JwtMiddleware } from './jwtMiddleware'
 import * as path from 'path'
+import { TwitterComment } from '../app/comment'
+import { Like } from '../app/like'
 dotenv.config()
 
 export class API {
@@ -16,11 +20,12 @@ export class API {
   db: Database
   secretKey = process.env.SECRET_KEY
   twitterUsers: User[]
-  posts?: Post[]
+  posts: Post[]
   jwtMiddleware = new JwtMiddleware()
   // Constructor
   constructor(app: Express, db: Database) {
     this.twitterUsers = []
+    this.posts = []
     this.app = app
     this.app.get('/hello', this.sayHello)
     this.app.post(
@@ -146,14 +151,13 @@ export class API {
       this.jwtMiddleware.verifyToken,
       this.like
     )
+    this.app.get('/api/getPosts', this.showTweets)
+    this.app.get('/api/getTweet/:id', this.showSpecificTweet)
     this.db = db
-  }
-  // Methods
-  private sayHello(req: Request, res: Response) {
-    res.send('Hello There!')
+    this.loadObjects()
   }
 
-  private register = async (req: Request, res: Response): Promise<any> => {
+  private register = async (req: Request, res: Response): Promise<void> => {
     const validationRes = validationResult(req)
     if (!validationRes.isEmpty()) {
       return res.status(400).send(validationRes.array()[0].msg)
@@ -170,7 +174,7 @@ export class API {
     return res.sendStatus(200)
   }
 
-  private login = async (req: Request, res: Response): Promise<any> => {
+  private login = async (req: Request, res: Response): Promise<void> => {
     const validationRes = validationResult(req)
     if (!validationRes.isEmpty()) {
       return res.status(400).send(validationRes.array()[0].msg)
@@ -198,21 +202,13 @@ export class API {
         },
         this.secretKey
       )
-      const loggedInUser = new User(
-        userId,
-        userInfo[0].username,
-        userInfo[0].password
-      )
-      this.twitterUsers.push(loggedInUser)
-      return res
-        .status(200)
-        .send({ userList: this.twitterUsers, token: jwtToken })
+      return res.status(200).send({ token: jwtToken })
     }
 
     return res.status(401).send('Username or Password is incorrect!')
   }
 
-  private createTweet = async (req: Request, res: Response): Promise<any> => {
+  private createTweet = async (req: Request, res: Response): Promise<void> => {
     const validationRes = validationResult(req)
     if (!validationRes.isEmpty()) {
       return res.status(400).send(validationRes.array()[0].msg)
@@ -221,7 +217,6 @@ export class API {
     const { id } = req.body
     const { tweetContent } = matchedData(req)
 
-    const userIndex = this.getLoggedInUserById(id)
     // https://stackoverflow.com/questions/20083807/javascript-date-to-sql-date-object
     let pad = function (num) {
       return ('00' + num).slice(-2)
@@ -240,25 +235,28 @@ export class API {
       pad(date.getUTCMinutes()) +
       ':' +
       pad(date.getUTCSeconds())
-    this.twitterUsers[userIndex].postTweet(
-      tweetContent,
-      date,
-      this.twitterUsers[userIndex].getUserId
-    )
-    const newTweet = new Post(
-      tweetContent,
-      date,
-      this.twitterUsers[userIndex].getUserId
-    )
 
     const insertTweetQuery = `
-    INSERT INTO \`posts\`(\`content\`, \`date\`, \`user_id\`) VALUES ('${tweetContent}','${date}','${id}')
-    `
-    this.db.executeSQL(insertTweetQuery)
+      INSERT INTO \`posts\`(\`content\`, \`date\`, \`user_id\`) VALUES ('${tweetContent}','${date}','${id}')
+      `
+    await this.db.executeSQL(insertTweetQuery)
+    const selectTweetId = `
+      SELECT id FROM posts WHERE content = '${tweetContent}' AND user_id = ${id}
+      `
+    const postId = await this.db.executeSQL(selectTweetId)
+    const userIndex = this.getLoggedInUserById(id)
+    const post = new Post(postId[0].id, tweetContent, date, id)
+    this.posts.push(post)
+    this.twitterUsers[userIndex].postTweet(
+      postId[0].id,
+      tweetContent,
+      date,
+      this.twitterUsers[userIndex].getUserId
+    )
     return res.status(200).send('OK')
   }
 
-  private editTweet = async (req: Request, res: Response): Promise<any> => {
+  private editTweet = async (req: Request, res: Response): Promise<void> => {
     const validationRes = validationResult(req)
     if (!validationRes.isEmpty()) {
       return res.status(400).send(validationRes.array()[0].msg)
@@ -274,7 +272,7 @@ export class API {
     return res.sendStatus(200)
   }
 
-  private deleteTweet = async (req: Request, res: Response): Promise<any> => {
+  private deleteTweet = async (req: Request, res: Response): Promise<void> => {
     const validationRes = validationResult(req)
     if (!validationRes.isEmpty()) {
       return res.status(400).send(validationRes.array()[0].msg)
@@ -293,7 +291,10 @@ export class API {
     return res.sendStatus(200)
   }
 
-  private createComment = async (req: Request, res: Response): Promise<any> => {
+  private createComment = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
     const validationRes = validationResult(req)
     if (!validationRes.isEmpty()) {
       return res.status(400).send(validationRes.array()[0].msg)
@@ -325,11 +326,27 @@ export class API {
     const createCommentQuery = `
     INSERT INTO \`comments\`(\`content\`, \`date\`,\`user_id\`, \`post_id\`) VALUES ('${commentContent}','${date}','${id}','${postId}')
     `
-    this.db.executeSQL(createCommentQuery)
+    await this.db.executeSQL(createCommentQuery)
+    const selectCommentId = `
+      SELECT id FROM comments WHERE content = '${commentContent}' AND user_id = ${id} AND post_id = ${postId}
+      `
+    const dbResponse = await this.db.executeSQL(selectCommentId)
+    const commentId = dbResponse[0].id
+    console.log(this.posts)
+    const comment = new TwitterComment(
+      commentId,
+      commentContent,
+      postId,
+      date,
+      id
+    )
+    this.twitterUsers[this.getLoggedInUserById(id)].comments?.push(comment)
+    this.posts[this.getPostById(Number(postId))].comments?.push(comment)
+
     return res.sendStatus(200)
   }
 
-  private editComment = async (req: Request, res: Response): Promise<any> => {
+  private editComment = async (req: Request, res: Response): Promise<void> => {
     const validationRes = validationResult(req)
     if (!validationRes.isEmpty()) {
       return res.status(400).send(validationRes.array()[0].msg)
@@ -345,7 +362,10 @@ export class API {
     return res.sendStatus(200)
   }
 
-  private deleteComment = async (req: Request, res: Response): Promise<any> => {
+  private deleteComment = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
     const validationRes = validationResult(req)
     if (!validationRes.isEmpty()) {
       return res.status(400).send(validationRes.array()[0].msg)
@@ -360,7 +380,7 @@ export class API {
     return res.sendStatus(200)
   }
 
-  private like = async (req: Request, res: Response): Promise<any> => {
+  private like = async (req: Request, res: Response): Promise<void> => {
     const validationRes = validationResult(req)
     if (!validationRes.isEmpty()) {
       return res.status(400).send(validationRes.array()[0].msg)
@@ -384,6 +404,14 @@ export class API {
     return -1
   }
 
+  private getPostById(id: number): number {
+    for (let i = 0; i < this.posts.length; i++) {
+      const element = this.posts[i]
+      if (element.getPostId === id) return i
+    }
+    return -1
+  }
+
   private checkUsernameAvailability = async (
     username: string
   ): Promise<boolean> => {
@@ -393,5 +421,150 @@ export class API {
     const usernameAvailable = await this.db.executeSQL(checkUsernameQuery)
     if (usernameAvailable.length === 0) return true
     return false
+  }
+
+  private loadObjects = async (): Promise<void> => {
+    this.twitterUsers = []
+    this.posts = []
+    const userQuery = `
+    SELECT users.id as 'userId', users.username, 
+    users.password FROM users 
+    WHERE role_id = 1
+    `
+    const userResult = await this.db.executeSQL(userQuery)
+    if (userResult.length > 0) {
+      for (let i = 0; i < userResult.length; i++) {
+        const user = userResult[i]
+        const userObject = new User(user.userId, user.username, user.password)
+        this.twitterUsers.push(userObject)
+      }
+    }
+
+    const moderatorQuery = `
+    SELECT users.id as 'userId', users.username, 
+    users.password FROM users 
+    WHERE role_id = 3
+    `
+    const moderatorResult = await this.db.executeSQL(moderatorQuery)
+    if (moderatorResult.length > 0) {
+      for (let i = 0; i < moderatorResult.length; i++) {
+        const user = moderatorResult[i]
+        const userObject = new Moderator(
+          user.userId,
+          user.username,
+          user.password
+        )
+        this.twitterUsers.push(userObject)
+      }
+    }
+
+    const adminQuery = `
+    SELECT users.id as 'userId', users.username, 
+    users.password FROM users 
+    WHERE role_id = 2
+    `
+    const adminResult = await this.db.executeSQL(adminQuery)
+    if (adminResult.length > 0) {
+      for (let i = 0; i < adminResult.length; i++) {
+        const user = adminResult[i]
+        const userObject = new Admin(user.userId, user.username, user.password)
+        this.twitterUsers.push(userObject)
+      }
+    }
+
+    for (let i = 0; i < this.twitterUsers.length; i++) {
+      const element = this.twitterUsers[i]
+      const tweetsQuery = `
+      SELECT * FROM posts WHERE user_id = ${element.getUserId}
+      `
+      const tweetsResult = await this.db.executeSQL(tweetsQuery)
+      if (tweetsResult.length > 0) {
+        for (let i = 0; i < tweetsResult.length; i++) {
+          const tweet = tweetsResult[i]
+          const postUser = this.getLoggedInUserById(tweet.user_id)
+          const postObject = new Post(
+            tweet.id,
+            tweet.content,
+            tweet.date,
+            this.twitterUsers[postUser].getUserId
+          )
+          this.twitterUsers[postUser].loadTweet(postObject)
+          this.posts.push(postObject)
+        }
+      }
+    }
+
+    for (let i = 0; i < this.twitterUsers.length; i++) {
+      const element = this.twitterUsers[i]
+      const commentsQuery = `
+      SELECT * FROM comments WHERE user_id = ${element.getUserId}
+      `
+      const commentsResult = await this.db.executeSQL(commentsQuery)
+      //ToDo: SQLResult generic type
+      if (commentsResult.length > 0) {
+        for (let i = 0; i < commentsResult.length; i++) {
+          const comment = commentsResult[i]
+          const postUser = this.getLoggedInUserById(comment.user_id)
+          const postIndex = this.getPostById(comment.post_id)
+          const commentObject = new TwitterComment(
+            comment.id,
+            comment.content,
+            comment.post_id,
+            comment.date,
+            this.twitterUsers[postUser].getUserId
+          )
+          this.twitterUsers[postUser].loadComment(commentObject)
+          this.posts[postIndex].loadComment(commentObject)
+        }
+      }
+    }
+
+    for (let i = 0; i < this.twitterUsers.length; i++) {
+      const element = this.twitterUsers[i]
+
+      const likesQuery = `
+      SELECT * FROM likes WHERE user_id = ${element.getUserId}
+      `
+      const likesResult = await this.db.executeSQL(likesQuery)
+      if (likesResult.length > 0) {
+        for (let i = 0; i < likesResult.length; i++) {
+          const element = likesResult[i]
+          const postUser = this.getLoggedInUserById(element.user_id)
+          const postIndex = this.getPostById(element.post_id)
+          const likeObject = new Like(
+            this.twitterUsers[postUser].getUserId,
+            element.post_id,
+            element.isPositive
+          )
+          this.twitterUsers[postUser].loadLike(likeObject)
+          this.posts[postIndex].loadLike(likeObject)
+        }
+      }
+    }
+  }
+
+  private showTweets = async (req: Request, res: Response): Promise<void> => {
+    const userPostList = []
+    for (let i = 0; i < this.posts.length; i++) {
+      const post = this.posts[i]
+      const userIndex = this.getLoggedInUserById(post.userId)
+      const userPost = { user: this.twitterUsers[userIndex].username, ...post }
+      userPostList.push(userPost)
+    }
+    return res.send(userPostList)
+  }
+
+  private showSpecificTweet = async (
+    req: Request,
+    res: Response
+  ): Promise<any> => {
+    const { id } = req.params
+    const postIndex = this.getPostById(Number(id))
+    const userIndex = this.getLoggedInUserById(this.posts[postIndex].userId)
+    const userPost = {
+      user: this.twitterUsers[userIndex].username,
+      ...this.posts[postIndex],
+    }
+    return res.send(userPost)
   }
 }

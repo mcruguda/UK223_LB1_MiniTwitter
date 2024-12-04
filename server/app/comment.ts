@@ -1,23 +1,26 @@
 import { Post } from './post'
 import { Like } from './like'
-import { User } from './User'
+import { User } from './user'
 
 export class TwitterComment {
+  commentId: number
   content: string
-  commentedPost: Post
+  commentedPostId: number
   postDate: Date
-  commentUser: User
+  commentUserId: number
   likes?: Like[]
   comment?: TwitterComment
   constructor(
+    commentId: number,
     content: string,
-    commentedPost: Post,
+    commentedPostId: number,
     postDate: Date,
-    commentUser: User
+    commentUserId: number
   ) {
+    this.commentId = commentId
     this.content = content
-    this.commentedPost = commentedPost
+    this.commentedPostId = commentedPostId
     this.postDate = postDate
-    this.commentUser = commentUser
+    this.commentUserId = commentUserId
   }
 }

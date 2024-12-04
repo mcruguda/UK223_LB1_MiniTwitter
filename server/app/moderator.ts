@@ -1,4 +1,4 @@
-import { User } from './User'
+import { User } from './user'
 
 export class Moderator extends User {
   constructor(userId: number, username: string, password: string) {

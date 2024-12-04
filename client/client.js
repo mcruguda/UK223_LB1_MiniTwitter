@@ -18,7 +18,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (response.ok) {
       const data = await response.json()
-      //window.location.href = '/homepage'
+      if (data?.token) {
+        localStorage.setItem('token', data.token)
+        window.location.href = '/'
+      } else {
+        errorText.innerText = data
+      }
+
+      window.location.href = '/homepage'
     } else if (response.status == 401) {
       document.getElementById('error-msg').innerText =
         'Benutzer oder Passwort falsch'

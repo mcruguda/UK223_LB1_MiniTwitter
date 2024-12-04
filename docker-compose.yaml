@@ -1,7 +1,9 @@
+version: '3.8'
+
 services:
   mariadb:
-    image: mariadb:latest
-    # command: '--default-authentication-plugin=mysql_native_password'
+    image: mariadb:10.6.4-focal
+    command: '--default-authentication-plugin=mysql_native_password'
     volumes:
       - m223_project_mariadb:/var/lib/mysql
     restart: always
@@ -11,7 +13,26 @@ services:
       - MYSQL_USER=minitwitter
       - MYSQL_PASSWORD=supersecret123
     ports:
-      - 3307:3306
+      - 3306:3306
+
+  nodejs:
+    image: node:20
+    command: bash -c "npm install yarn && yarn install && yarn build && yarn start"
+    depends_on:
+      - mariadb
+    restart: always
+    environment:
+      - DB_NAME=minitwitter
+      - DB_HOST=mariadb
+      - DB_USER=minitwitter
+      - DB_PASSWORD=supersecret123
+      - SECRET_KEY="SUPER_SECRET_KEY!"
+      - PORT=8080
+    ports:
+      - 8080:8080
+    working_dir: /usr/src/app
+    volumes:
+      - ./:/usr/src/app
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin

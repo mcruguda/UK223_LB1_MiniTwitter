@@ -15,7 +15,7 @@ export class Database {
   // Constructor
   constructor() {
     this._pool = mysql.createPool({
-      port: 3307,
+      port: 3306,
       database: process.env.DB_NAME || 'minitwitter',
       host: process.env.DB_HOST || 'localhost',
       user: process.env.DB_USER || 'minitwitter',

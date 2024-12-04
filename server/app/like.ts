@@ -1,17 +1,14 @@
-import { User } from './User'
+import { User } from './user'
 import { Post } from './post'
 import { TwitterComment } from './comment'
 
 export class Like {
-  likedPost?: Post
-  likedComment?: TwitterComment
-  user: User
-  constructor(user: User, likedPost?: Post, likedComment?: TwitterComment) {
-    this.user = user
-    if (likedPost) {
-      this.likedPost = likedPost
-    } else {
-      this.likedComment = likedComment
-    }
+  likedPostId: number
+  userId: number
+  isPositive: boolean
+  constructor(userId: number, likedPostId: number, isPositive: boolean) {
+    this.likedPostId = likedPostId
+    this.userId = userId
+    this.isPositive = isPositive
   }
 }
