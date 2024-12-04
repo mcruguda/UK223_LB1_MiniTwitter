@@ -16,5 +16,5 @@ registerBtn.addEventListener('click', async () => {
     }),
   })
 
-  if (response.ok) window.location.href = '/login'
+  if (response.ok) window.location.href = '/'
 })
